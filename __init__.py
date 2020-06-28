@@ -105,6 +105,7 @@ class DealScraper:
 				except exc.IntegrityError as e:
 					duplicates += 1
 					self.new_results_titles.pop()
+					self.new_results_prices.pop()
 					self.new_results_links.pop()
 					self.session.rollback()
 			self.new_results = (self.new_results_prices, self.new_results_titles, self.new_results_links)
