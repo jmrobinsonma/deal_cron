@@ -199,8 +199,10 @@ def main():
 		find_usedcars.send_mail(EMAIL_ADDRESS,EMAIL_PASSWORD, find_usedcars.results_msg)
 	else:
 		find_usedcars.db_close(find_usedcars.session)
-	sys.exit()
-
+	try:
+		sys.exit()
+	except SystemExit:
+		pass 
 if __name__ == '__main__':
 	main()
 
