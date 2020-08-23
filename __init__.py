@@ -8,6 +8,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from email.message import EmailMessage
 
+
+# SETUP LOCAL DATABASE 
 Base = declarative_base()
 class Posts(Base):
 
@@ -41,6 +43,8 @@ class DealScraper:
 		self.EMAIL_ADDRESS = ""
 		self.EMAIL_PASSWORD = ""
 
+# USE IF/ELSE CONDITIONALS IN THIS FUNCTION TO DEFINE PERSONALIZED 
+# SEARCH CRITERIA, SCRAPE, AND POPULATE RESULT LISTS
 	def get_results(self):
 
 		try:
@@ -52,6 +56,7 @@ class DealScraper:
 				for post in posts:
 					post_title = post.find('p', class_='result-info')
 					post_link = post_title.a['href']
+					# SELECT A REGION HERE TO REFINE RESULTS
 					region = bool(post_link.split('/')[2].split('.')[0]=='westernmass')
 
 					if region:
@@ -69,15 +74,16 @@ class DealScraper:
 						post_datetime = post.find('time', class_= 'result-date')['datetime']
 						self.post_timing.append(post_datetime)
 		except Exception as e:
-			print(f"{e}")
+			print(f"\nThere was a problem scraping results!\n--> {e}")
 		if self.num_posts:
 			self.instance_results = (self.post_timing, self.post_title_texts, self.post_prices, self.post_links, self.num_posts)
 			return self.instance_results
 		else:
 			sys.exit()
-
+# DATABASE CONNECTION 
 	def db_connect(self):
 		try:
+			# BE CERTAIN THAT THE DB URI IS CORRECT
 			engine = create_engine(f'sqlite:////home/jrob/Databases/{self.name}.db')  #echo=True for output to console
 			Base.metadata.create_all(bind=engine)
 			Session = sessionmaker(bind=engine)
@@ -85,6 +91,7 @@ class DealScraper:
 		except Exception as e:
 			print(f"\nThere was a problem connecting to the database!\n--> {e}")
 
+# CHECK FOR DUPLICATES (IntegrityError) AND UPDATE DB WITH UNIQUE RESULTS
 	def db_update(self, instance_results, session):
 		post_timing, post_title_texts, post_prices, post_links, num_posts = instance_results
 
@@ -108,12 +115,14 @@ class DealScraper:
 					self.new_results_prices.pop()
 					self.new_results_links.pop()
 					self.session.rollback()
+			
 			self.new_results = (self.new_results_prices, self.new_results_titles, self.new_results_links)
 			self.num_new_results = num_posts - duplicates
 			return self.num_new_results
 		except Exception as e:
 			print(f"\nThere was a problem updating the database!\n--> {e}")
 
+# FORMAT LOGGED OUTPUT RESULTS MESSAGE 
 	def show_num_results(self, num_new_results, instance_results):
 		post_timing, post_title_texts, post_prices, post_links, num_posts = instance_results
 
@@ -127,6 +136,7 @@ class DealScraper:
 	def db_close(self, session):
 		self.session.close()
 
+# FORMAT USER EMAIL RESULTS MESSAGE
 	def create_msg(self, new_results):
 		prices, titles, links = new_results
 
@@ -142,6 +152,7 @@ Result {i+1}
 		return self.results_msg
 
 
+# GET EMAIL CREDENTIALS
 	def get_cred(self):
 
 		try:
@@ -160,7 +171,7 @@ Result {i+1}
 			print(f"\nThere was a problem obtaining environment variable for your password!\n--> {e}")
 		return self.EMAIL_ADDRESS, self.EMAIL_PASSWORD
 
-
+# FORMAT AND SEND EMAIL
 	def send_mail(self, EMAIL_ADDRESS, EMAIL_PASSWORD, results_msg):
 
 		msg = EmailMessage()
@@ -177,7 +188,8 @@ Result {i+1}
 		except Exception as e:
 			print(f"\nThere was a problem while attempting to send your email!\n--> {e}")
 
-
+# USE AS MANY URLS AS POSSIBLE FROM THE MOST SPECIFIC POSSIBLE SEARCHES.
+# SET QUERY PARAMATERS SUCH AS MIN/MAX PRICE, POSTED TODAY, SEARCH RADIUS, HAS PIC, ETC.
 urls = ["https://westernmass.craigslist.org/search/cta?query=subaru+forester&hasPic=1&max_price=5000",
 		"https://westernmass.craigslist.org/search/cta?hasPic=1&postedToday=1&max_price=5000",
 		"https://westernmass.craigslist.org/search/cta?query=honda+crv&hasPic=1&max_price=5000",
@@ -185,20 +197,20 @@ urls = ["https://westernmass.craigslist.org/search/cta?query=subaru+forester&has
 		"https://westernmass.craigslist.org/search/cta?query=ford+ranger+4x4&hasPic=1&max_price=5000",
 		"https://westernmass.craigslist.org/search/cta?query=nissan+frontier+4x4&hasPic=1&max_price=5000"]
 
+# PUT IT ALL TOGETHER IN A MAIN FUNCTION
 def main():
-
-	find_usedcars = DealScraper(urls, "used-cars")
-	find_usedcars.get_results()
-	find_usedcars.db_connect()
-	find_usedcars.db_update(find_usedcars.instance_results, find_usedcars.session)
-	find_usedcars.show_num_results(find_usedcars.num_new_results, find_usedcars.instance_results)
-	if find_usedcars.num_new_results:
-		find_usedcars.db_close(find_usedcars.session)
-		EMAIL_ADDRESS,EMAIL_PASSWORD = (find_usedcars.get_cred())
-		find_usedcars.create_msg(find_usedcars.new_results)
-		find_usedcars.send_mail(EMAIL_ADDRESS,EMAIL_PASSWORD, find_usedcars.results_msg)
+	ds = DealScraper(urls, "used-cars")
+	ds.get_results()
+	ds.db_connect()
+	ds.db_update(ds.instance_results, ds.session)
+	ds.show_num_results(ds.num_new_results, ds.instance_results)
+	if ds.num_new_results:
+		ds.db_close(ds.session)
+		EMAIL_ADDRESS,EMAIL_PASSWORD = (ds.get_cred())
+		ds.create_msg(ds.new_results)
+		ds.send_mail(EMAIL_ADDRESS,EMAIL_PASSWORD, ds.results_msg)
 	else:
-		find_usedcars.db_close(find_usedcars.session)
+		ds.db_close(ds.session)
 	try:
 		sys.exit()
 	except SystemExit:
