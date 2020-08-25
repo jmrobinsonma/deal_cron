@@ -142,7 +142,6 @@ class DealScraper:
 
 		for i, post in enumerate(titles):
 			result = f"""
-
 Result {i+1}
 	{prices[i]}
 	{titles[i]}
@@ -199,12 +198,13 @@ urls = ["https://westernmass.craigslist.org/search/cta?query=subaru+forester&has
 
 # PUT IT ALL TOGETHER IN A MAIN FUNCTION
 def main():
-	ds = DealScraper(urls, "used-cars")
+	ds = DealScraper(urls, "car-test")
 	ds.get_results()
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
-	ds.show_num_results(ds.num_new_results, ds.instance_results)
+	#ds.show_num_results(ds.num_new_results, ds.instance_results)
 	if ds.num_new_results:
+		print(ds.create_msg(ds.new_results))
 		ds.db_close(ds.session)
 		EMAIL_ADDRESS,EMAIL_PASSWORD = (ds.get_cred())
 		ds.create_msg(ds.new_results)
@@ -217,7 +217,3 @@ def main():
 		pass 
 if __name__ == '__main__':
 	main()
-
-
-
-
