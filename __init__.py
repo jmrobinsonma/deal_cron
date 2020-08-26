@@ -122,22 +122,23 @@ class DealScraper:
 		except Exception as e:
 			print(f"\nThere was a problem updating the database!\n--> {e}")
 
-# FORMAT LOGGED OUTPUT RESULTS MESSAGE 
-	def show_num_results(self, num_new_results, instance_results):
-		post_timing, post_title_texts, post_prices, post_links, num_posts = instance_results
-
-		print(f"\n{self.num_new_results} New results\n")
-		for result in range(self.num_new_results):
-			print(f"Result {result + 1}\n\
-				{self.new_results_titles[result]}\n\
-				{self.new_results_prices[result]}\n\
-				{post_links[result]}\n")
-
 	def db_close(self, session):
 		self.session.close()
 
+# FORMAT LOGGED OUTPUT RESULTS MESSAGE 
+	def console_msg(self, new_results):
+		prices, titles, links = new_results
+
+		print(f"\n{self.num_new_results} New {self.name} Results\n")
+		for i, post in enumerate(titles):
+			print(f"Result {i + 1}\n\
+				{prices[i]}\n\
+				{titles[i]}\n\
+				{links[i]}\n")
+
+
 # FORMAT USER EMAIL RESULTS MESSAGE
-	def create_msg(self, new_results):
+	def client_msg(self, new_results):
 		prices, titles, links = new_results
 
 		for i, post in enumerate(titles):
@@ -198,12 +199,12 @@ def main():
 	ds.get_results()
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
-	ds.show_num_results(ds.num_new_results, ds.instance_results)
+	ds.console_msg(ds.new_results)
 	if ds.num_new_results:
-		print(ds.create_msg(ds.new_results))
+		print(ds.client_msg(ds.new_results))
 		ds.db_close(ds.session)
 		EMAIL_ADDRESS,EMAIL_PASSWORD = (ds.get_cred())
-		ds.create_msg(ds.new_results)
+		ds.client_msg(ds.new_results)
 		ds.send_mail(EMAIL_ADDRESS,EMAIL_PASSWORD, ds.results_msg)
 	else:
 		ds.db_close(ds.session)
