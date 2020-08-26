@@ -174,7 +174,7 @@ Result {i+1}
 	def send_mail(self, EMAIL_ADDRESS, EMAIL_PASSWORD, results_msg):
 
 		msg = EmailMessage()
-		msg['Subject'] = f"{self.name}"
+		msg['Subject'] = f"{self.num_new_results} New {self.name} Search Results!"
 		msg['From'] = self.EMAIL_ADDRESS
 		msg['to'] = self.EMAIL_ADDRESS
 		msg.set_content(self.results_msg)
@@ -190,11 +190,7 @@ Result {i+1}
 # USE AS MANY URLS AS POSSIBLE FROM THE MOST SPECIFIC POSSIBLE SEARCHES.
 # SET QUERY PARAMATERS SUCH AS MIN/MAX PRICE, POSTED TODAY, SEARCH RADIUS, HAS PIC, ETC.
 urls = ["https://westernmass.craigslist.org/search/cta?query=subaru+forester&hasPic=1&max_price=5000",
-		"https://westernmass.craigslist.org/search/cta?hasPic=1&postedToday=1&max_price=5000",
-		"https://westernmass.craigslist.org/search/cta?query=honda+crv&hasPic=1&max_price=5000",
-		"https://westernmass.craigslist.org/search/cta?query=toyota+rav4&hasPic=1&max_price=5000",
-		"https://westernmass.craigslist.org/search/cta?query=ford+ranger+4x4&hasPic=1&max_price=5000",
-		"https://westernmass.craigslist.org/search/cta?query=nissan+frontier+4x4&hasPic=1&max_price=5000"]
+		"https://westernmass.craigslist.org/search/cta?hasPic=1&postedToday=1&max_price=5000"]
 
 # PUT IT ALL TOGETHER IN A MAIN FUNCTION
 def main():
@@ -202,7 +198,7 @@ def main():
 	ds.get_results()
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
-	#ds.show_num_results(ds.num_new_results, ds.instance_results)
+	ds.show_num_results(ds.num_new_results, ds.instance_results)
 	if ds.num_new_results:
 		print(ds.create_msg(ds.new_results))
 		ds.db_close(ds.session)
