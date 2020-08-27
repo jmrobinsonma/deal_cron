@@ -130,23 +130,23 @@ class DealScraper:
 		prices, titles, links = new_results
 
 		print(f"\n{self.num_new_results} New {self.name} Results\n")
-		for i, post in enumerate(titles):
-			print(f"Result {i + 1}\n\
-				{prices[i]}\n\
-				{titles[i]}\n\
-				{links[i]}\n")
+		for result, index in enumerate(titles):
+			print(f"Result {result + 1}\n\
+				{prices[result]}\n\
+				{titles[result]}\n\
+				{links[result]}\n")
 
 
 # FORMAT USER EMAIL RESULTS MESSAGE
 	def client_msg(self, new_results):
 		prices, titles, links = new_results
 
-		for i, post in enumerate(titles):
+		for result, index in enumerate(titles):
 			result = f"""
-Result {i+1}
-	{prices[i]}
-	{titles[i]}
-	{links[i]}
+Result {result+1}
+	{prices[result]}
+	{titles[result]}
+	{links[result]}
 			"""
 			self.results_msg = self.results_msg + result
 		return self.results_msg
@@ -201,7 +201,6 @@ def main():
 	ds.db_update(ds.instance_results, ds.session)
 	ds.console_msg(ds.new_results)
 	if ds.num_new_results:
-		print(ds.client_msg(ds.new_results))
 		ds.db_close(ds.session)
 		EMAIL_ADDRESS,EMAIL_PASSWORD = (ds.get_cred())
 		ds.client_msg(ds.new_results)
