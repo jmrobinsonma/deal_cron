@@ -22,9 +22,10 @@ class Posts(Base):
 
 class DealScraper:
 
-	def __init__(self,urls,name,):
+	def __init__(self, urls, name, client_email):
 		self.urls = urls
 		self.name = name
+		self.client_email = client_email
 		self.session = False
 		self.instance_filename = ""
 		self.instance_responses = ()
@@ -177,7 +178,7 @@ Result {result+1}
 		msg = EmailMessage()
 		msg['Subject'] = f"{self.num_new_results} New {self.name} Search Results!"
 		msg['From'] = self.EMAIL_ADDRESS
-		msg['to'] = self.EMAIL_ADDRESS
+		msg['to'] = self.client_email, self.EMAIL_ADDRESS
 		msg.set_content(self.results_msg)
 
 		try:
@@ -195,7 +196,7 @@ urls = ["https://westernmass.craigslist.org/search/cta?query=subaru+forester&has
 
 # PUT IT ALL TOGETHER IN A MAIN FUNCTION
 def main():
-	ds = DealScraper(urls, "car-test")
+	ds = DealScraper(urls, "car-test", "jmrobinsonma@gmail.com")
 	ds.get_results()
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
