@@ -1,6 +1,7 @@
 import os
 import sys
 import smtplib
+import argparse
 from bs4 import BeautifulSoup
 from requests import get
 from sqlalchemy import create_engine, exc, Column, Integer, String
@@ -8,6 +9,30 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from email.message import EmailMessage
 
+
+parser = argparse.ArgumentParser(description='DealScraper')
+parser.add_argument(
+	'name',
+	type=str,
+	help='enter a title'
+)
+parser.add_argument(
+	'client_email',
+	type=str,
+	help='enter an email address'
+)
+parser.add_argument(
+	'-u','--url',
+	help='enter CL urls',
+	dest='urls', 
+	default=[],
+	action='append' 
+)
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-q','--quiet',action='store_true')
+group.add_argument('-v','--verbose',action='store_true')
+
+args = parser.parse_args()
 
 # SETUP LOCAL DATABASE 
 Base = declarative_base()
@@ -23,7 +48,10 @@ class Posts(Base):
 class DealScraper:
 
 	def __init__(self, urls, name, client_email):
-		self.urls = urls
+		self.urls = []
+		for url in urls:
+			self.urls.append(url.replace("'",""))
+
 		self.name = name
 		self.client_email = client_email
 		self.session = False
@@ -191,12 +219,11 @@ Result {result+1}
 
 # USE AS MANY URLS AS POSSIBLE FROM THE MOST SPECIFIC POSSIBLE SEARCHES.
 # SET QUERY PARAMATERS SUCH AS MIN/MAX PRICE, POSTED TODAY, SEARCH RADIUS, HAS PIC, ETC.
-urls = ["https://westernmass.craigslist.org/search/cta?query=subaru+forester&hasPic=1&max_price=5000",
-		"https://westernmass.craigslist.org/search/cta?hasPic=1&postedToday=1&max_price=5000"]
+
 
 # PUT IT ALL TOGETHER IN A MAIN FUNCTION
 def main():
-	ds = DealScraper(urls, "car-test", "jmrobinsonma@gmail.com")
+	ds = DealScraper(args.urls, args.name, args.client_email)
 	ds.get_results()
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
