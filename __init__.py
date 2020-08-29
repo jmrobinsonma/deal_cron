@@ -22,8 +22,8 @@ parser.add_argument(
 	help='enter an email address'
 )
 parser.add_argument(
-	'-u','--url',
-	help='enter CL urls',
+	'-u',
+	help='enter each CL url with a -u and single quotes, ex: -u \'http://\' -u \'http://\'',
 	dest='urls', 
 	default=[],
 	action='append' 
@@ -48,6 +48,7 @@ class Posts(Base):
 class DealScraper:
 
 	def __init__(self, urls, name, client_email):
+		# REMOVE SINGLE QUOTES FROM ARGPARSE INPUT 
 		self.urls = []
 		for url in urls:
 			self.urls.append(url.replace("'",""))
