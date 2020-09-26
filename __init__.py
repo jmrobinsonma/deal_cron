@@ -36,8 +36,8 @@ args = parser.parse_args()
 
 # SETUP LOCAL DATABASE 
 Base = declarative_base()
-class Posts(Base):
 
+class Posts(Base):
     __tablename__ = "posts"
 
     timing = Column(String(120), unique=False, nullable=False, primary_key=True)
@@ -46,7 +46,6 @@ class Posts(Base):
     link = Column(String(120), unique=False, nullable=False)
 
 class DealScraper:
-
 	def __init__(self, urls, name, client_email):
 		# REMOVE SINGLE QUOTES FROM ARGPARSE INPUT 
 		self.urls = []
@@ -76,40 +75,44 @@ class DealScraper:
 # USE IF/ELSE CONDITIONALS IN THIS FUNCTION TO DEFINE PERSONALIZED 
 # SEARCH CRITERIA, SCRAPE, AND POPULATE RESULT LISTS
 	def get_results(self):
-
 		try:
+			
 			for url in self.urls:
 				response = get(url)
 				soup = BeautifulSoup(response.text,'html.parser')
 				posts = soup.find_all('li',class_='result-row')
 
+			
 				for post in posts:
-					post_title = post.find('p', class_='result-info')
-					post_link = post_title.a['href']
+					post_title = post.find('a',class_='result-title hdrlnk')
+					post_link = post_title['href']
 					# SELECT A REGION HERE TO REFINE RESULTS
 					region = bool(post_link.split('/')[2].split('.')[0]=='westernmass')
 
 					if region:
 						self.num_posts += 1
 
-						post_title_text = post_title.text.split('\n')[5]
+						post_title_text = post_title.text
 						self.post_title_texts.append(post_title_text)
 
-						post_link = post_title.a['href']
 						self.post_links.append(post_link)
 
-						post_price = post_title.find('span',class_='result-price').text
+						post_price = post.find('span', class_='result-price').text
 						self.post_prices.append(post_price)
 
-						post_datetime = post.find('time', class_= 'result-date')['datetime']
+						post_datetime = post.find('time', class_= 'result-date')['title']
 						self.post_timing.append(post_datetime)
+
 		except Exception as e:
 			print(f"\nThere was a problem scraping results!\n--> {e}")
+
 		if self.num_posts:
 			self.instance_results = (self.post_timing, self.post_title_texts, self.post_prices, self.post_links, self.num_posts)
 			return self.instance_results
+
 		else:
 			sys.exit()
+
 # DATABASE CONNECTION 
 	def db_connect(self):
 		try:
@@ -118,6 +121,7 @@ class DealScraper:
 			Base.metadata.create_all(bind=engine)
 			Session = sessionmaker(bind=engine)
 			self.session = Session()
+
 		except Exception as e:
 			print(f"\nThere was a problem connecting to the database!\n--> {e}")
 
@@ -126,8 +130,11 @@ class DealScraper:
 		post_timing, post_title_texts, post_prices, post_links, num_posts = instance_results
 
 		duplicates = 0
+
 		try:
+
 			for i in range(len(post_links)):
+
 				try:
 					post = Posts()
 					post.timing = post_timing[i]
@@ -139,6 +146,7 @@ class DealScraper:
 					self.new_results_links.append(post_links[i])
 					self.session.add(post)
 					self.session.commit()
+
 				except exc.IntegrityError as e:
 					duplicates += 1
 					self.new_results_titles.pop()
@@ -148,7 +156,9 @@ class DealScraper:
 			
 			self.new_results = (self.new_results_prices, self.new_results_titles, self.new_results_links)
 			self.num_new_results = num_posts - duplicates
+
 			return self.num_new_results
+
 		except Exception as e:
 			print(f"\nThere was a problem updating the database!\n--> {e}")
 
@@ -160,6 +170,7 @@ class DealScraper:
 		prices, titles, links = new_results
 
 		print(f"\n{self.num_new_results} New {self.name} Results\n")
+
 		for result, index in enumerate(titles):
 			print(f"Result {result + 1}\n\
 				{prices[result]}\n\
@@ -179,26 +190,32 @@ Result {result+1}
 	{links[result]}
 			"""
 			self.results_msg = self.results_msg + result
+
 		return self.results_msg
 
 
 # GET EMAIL CREDENTIALS
 	def get_cred(self):
-
 		try:
 			self.EMAIL_ADDRESS = os.environ.get('EMAIL_USER')
+
 			if not self.EMAIL_ADDRESS:
 				print("\nThere was a problem obtaining environment variable for username and an email will not be sent!")
 				sys.exit()
+
 		except Exception as e:
 			print(f"\nThere was a problem obtaining environment variable for your username!")
+
 		try:
 			self.EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
+
 			if not self.EMAIL_PASSWORD:
 				print("\nThere was a problem obtaining environment variable for your password and an email will not be sent!")
 				sys.exit()
+
 		except Exception as e:
 			print(f"\nThere was a problem obtaining environment variable for your password!\n--> {e}")
+
 		return self.EMAIL_ADDRESS, self.EMAIL_PASSWORD
 
 # FORMAT AND SEND EMAIL
@@ -215,6 +232,7 @@ Result {result+1}
 			    smtp.login(self.EMAIL_ADDRESS, self.EMAIL_PASSWORD)
 			    smtp.send_message(msg)
 			print("Email Sent")
+
 		except Exception as e:
 			print(f"\nThere was a problem while attempting to send your email!\n--> {e}")
 
@@ -229,16 +247,22 @@ def main():
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
 	ds.console_msg(ds.new_results)
+
 	if ds.num_new_results:
 		ds.db_close(ds.session)
 		EMAIL_ADDRESS,EMAIL_PASSWORD = (ds.get_cred())
 		ds.client_msg(ds.new_results)
 		ds.send_mail(EMAIL_ADDRESS,EMAIL_PASSWORD, ds.results_msg)
+
 	else:
 		ds.db_close(ds.session)
+
 	try:
 		sys.exit()
+
 	except SystemExit:
 		pass 
+
+
 if __name__ == '__main__':
 	main()
