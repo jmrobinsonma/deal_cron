@@ -169,14 +169,16 @@ class DealScraper:
 	def console_msg(self, new_results):
 		prices, titles, links = new_results
 
-		print(f"\n{self.num_new_results} New {self.name} Results\n")
+		if self.num_new_results:
+			print(f"\n{self.num_new_results} New {self.name} Results\n")
 
-		for result, index in enumerate(titles):
-			print(f"Result {result + 1}\n\
-				{prices[result]}\n\
-				{titles[result]}\n\
-				{links[result]}\n")
-
+			for result, index in enumerate(titles):
+				print(f"Result {result + 1}\n\
+					{prices[result]}\n\
+					{titles[result]}\n\
+					{links[result]}\n")
+		else:
+			print(f"\nNo new {self.name} search results\n")
 
 # FORMAT USER EMAIL RESULTS MESSAGE
 	def client_msg(self, new_results):
