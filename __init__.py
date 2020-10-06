@@ -76,13 +76,11 @@ class DealScraper:
 # SEARCH CRITERIA, SCRAPE, AND POPULATE RESULT LISTS
 	def get_results(self):
 		try:
-			
 			for url in self.urls:
 				response = get(url)
 				soup = BeautifulSoup(response.text,'html.parser')
 				posts = soup.find_all('li',class_='result-row')
-
-			
+				
 				for post in posts:
 					post_title = post.find('a',class_='result-title hdrlnk')
 					post_link = post_title['href']
@@ -111,6 +109,7 @@ class DealScraper:
 			return self.instance_results
 
 		else:
+			print(f"No new {self.name} search results")
 			sys.exit()
 
 # DATABASE CONNECTION 
@@ -249,7 +248,6 @@ def main():
 	ds.db_connect()
 	ds.db_update(ds.instance_results, ds.session)
 	ds.console_msg(ds.new_results)
-
 	if ds.num_new_results:
 		ds.db_close(ds.session)
 		EMAIL_ADDRESS,EMAIL_PASSWORD = (ds.get_cred())
