@@ -116,7 +116,7 @@ class DealScraper:
 	def db_connect(self):
 		try:
 			# BE CERTAIN THAT THE DB URI IS CORRECT
-			engine = create_engine(f'sqlite:////home/jrob/Databases/{self.name}.db')  #echo=True for output to console
+			engine = create_engine(f'sqlite:///{self.name}.db')  #echo=True for output to console
 			Base.metadata.create_all(bind=engine)
 			Session = sessionmaker(bind=engine)
 			self.session = Session()
