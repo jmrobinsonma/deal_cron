@@ -1,7 +1,7 @@
 # This is a terminal app that will scrape Craigslist
 # and send an email with the results. This app uses
 # argparse and requires a minimum of three commandline
-# arguments.
+# arguments. A shell script should be created and run as a crontab for persistent scraping.
 #
 # Example:
 # $ python3 dealcron.py free-stuff email@emailaddress.com -u 'https://westernmass.craigslist.org/search/zip?hasPic=1'
@@ -21,3 +21,9 @@
 # looking for a clothes washing machine and dryer. I'd use one url to
 # search for "washing machine", another to search "dryer", and
 # a third url to search "washer and dryer"
+#
+#
+# DOCKER
+# Create a docker image with the Dockerfile
+# Create a container with the specific search criteria and run it manually
+# Once a container is created, make a shell script to use with crontab
