@@ -21,9 +21,9 @@ for i in url_list:
 
 # Format the shell script
 shell = "#!bin/bash"
-python_path = "/home/jmr/scrapers/deal_cron/venv/bin/python3"
-dot_py_path = "/home/jmr/scrapers/deal_cron/dealcron.py"
-project_path = f"/home/jmr/scrapers/deal_cron/{user_search_name}"
+python_path = "/home/jr1/scrapers/deal_cron/venv/bin/python3"
+dot_py_path = "/home/jr1/scrapers/deal_cron/dealcron.py"
+project_path = f"/home/jr1/scrapers/deal_cron/{user_search_name}"
 shell_script_path = f"{project_path}/{user_search_name}.sh"
 
 os.system(f"mkdir {project_path}")
